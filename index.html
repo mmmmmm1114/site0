@@ -1,939 +1,165 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<title>NEXUS OPS — Full Game UI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: "Orbitron", sans-serif;
-  background: #05060a;
-  color: #fff;
-  overflow-x: hidden;
-}
-
-/* ---------- BACKGROUND LAYERS ---------- */
-.bg-layer {
-  position: fixed;
-  inset: 0;
-  z-index: -4;
-  background: radial-gradient(circle at center, #0a0f1a 0%, #05060a 70%);
-}
-
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  background-image: linear-gradient(rgba(0,255,255,0.08) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(0,255,255,0.08) 1px, transparent 1px);
-  background-size: 80px 80px;
-  opacity: 0.15;
-  z-index: -3;
-  transform: translate3d(0,0,0);
-  transition: transform 0.2s linear;
-}
-
-.bg-particles {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #00f2ff;
-  box-shadow: 0 0 10px #00f2ff;
-  opacity: 0.4;
-  animation: floatParticle linear infinite;
-}
-
-@keyframes floatParticle {
-  0% { transform: translateY(0); opacity: 0; }
-  10% { opacity: 0.7; }
-  90% { opacity: 0.7; }
-  100% { transform: translateY(-120vh); opacity: 0; }
-}
-
-.scanlines {
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.03) 0px,
-    rgba(255,255,255,0.03) 1px,
-    transparent 2px
-  );
-  z-index: -1;
-  pointer-events: none;
-  animation: scan 6s linear infinite;
-}
-
-@keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
-}
-
-/* ---------- LOADING SCREEN ---------- */
-.loading-screen {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at center, #05060a 0, #000 70%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-.loading-title {
-  font-size: 26px;
-  color: #00f2ff;
-  text-shadow: 0 0 12px #00f2ff;
-  margin-bottom: 20px;
-}
-
-.loading-sub {
-  font-size: 12px;
-  opacity: 0.7;
-  margin-bottom: 18px;
-}
-
-.loading-bar {
-  width: 260px;
-  height: 8px;
-  border-radius: 999px;
-  border: 1px solid #00f2ff;
-  overflow: hidden;
-  position: relative;
-}
-
-.loading-bar-fill {
-  position: absolute;
-  inset: 0;
-  width: 0%;
-  background: linear-gradient(90deg, #00f2ff, #ff00ff);
-  box-shadow: 0 0 16px #00f2ff;
-  transition: width 0.2s;
-}
-
-.loading-text {
-  margin-top: 14px;
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-.loading-noise {
-  position: absolute;
-  inset: 0;
-  background-image: url("https://i.imgur.com/8Km9tLL.png");
-  opacity: 0.06;
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-/* ---------- NAV ---------- */
-nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 18px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(10, 12, 20, 0.7);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0,255,255,0.25);
-  z-index: 100;
-}
-
-.logo {
-  font-size: 22px;
-  font-weight: 700;
-  color: #00f2ff;
-  text-shadow: 0 0 12px #00f2ff;
-}
-
-.nav-links {
-  display: flex;
-  gap: 26px;
-  font-size: 13px;
-}
-
-.nav-links button {
-  background: none;
-  border: none;
-  color: #fff;
-  opacity: 0.7;
-  cursor: pointer;
-  transition: 0.2s;
-  position: relative;
-}
-
-.nav-links button::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -4px;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #00f2ff, #ff00ff);
-  transition: width 0.2s;
-}
-
-.nav-links button:hover {
-  opacity: 1;
-  color: #00f2ff;
-  text-shadow: 0 0 8px #00f2ff;
-}
-
-.nav-links button.active {
-  opacity: 1;
-  color: #00f2ff;
-}
-
-.nav-links button.active::after {
-  width: 100%;
-}
-
-/* ---------- HUD ---------- */
-.hud {
-  position: fixed;
-  bottom: 20px;
-  left: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 50;
-  font-size: 11px;
-}
-
-.hud-bar {
-  width: 220px;
-  height: 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,255,255,0.4);
-  background: rgba(0,0,0,0.7);
-  overflow: hidden;
-  position: relative;
-}
-
-.hud-bar-fill {
-  position: absolute;
-  inset: 0;
-  width: 80%;
-  background: linear-gradient(90deg, #00f2ff, #00ff85);
-  box-shadow: 0 0 12px #00f2ff;
-  animation: hudPulse 2.4s ease-in-out infinite;
-}
-
-.hud-bar-fill.energy {
-  width: 55%;
-  background: linear-gradient(90deg, #ff00ff, #ffb300);
-  box-shadow: 0 0 12px #ff00ff;
-}
-
-@keyframes hudPulse {
-  0%,100% { opacity: 0.9; }
-  50% { opacity: 0.5; }
-}
-
-.hud-label {
-  opacity: 0.7;
-}
-
-/* ---------- PAGE / SECTIONS ---------- */
-.page {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: pageIn 0.8s ease-out forwards;
-}
-
-@keyframes pageIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-main {
-  padding-top: 80px;
-}
-
-.section {
-  min-height: 100vh;
-  padding: 80px 50px 100px;
-  opacity: 0;
-  transform: translateY(20px) scale(0.98);
-  pointer-events: none;
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.section.active {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.section-title {
-  font-size: 32px;
-  margin-bottom: 30px;
-  color: #00f2ff;
-  text-shadow: 0 0 12px #00f2ff;
-}
-
-/* ---------- HERO ---------- */
-.hero-inner {
-  display: flex;
-  align-items: center;
-  gap: 60px;
-  min-height: calc(100vh - 120px);
-}
-
-.hero-left {
-  max-width: 520px;
-}
-
-.hero-title {
-  font-size: clamp(40px, 7vw, 90px);
-  font-weight: 700;
-  line-height: 0.9;
-  color: #00f2ff;
-  text-shadow: 0 0 20px #00f2ff;
-  animation: glitch 2s infinite;
-}
-
-@keyframes glitch {
-  0% { text-shadow: 0 0 20px #00f2ff; transform: translate(0,0); }
-  20% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(-1px,1px); }
-  40% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(1px,-1px); }
-  60% { text-shadow: 0 0 20px #00f2ff; transform: translate(0,0); }
-  100% { text-shadow: 0 0 20px #00f2ff; transform: translate(0,0); }
-}
-
-.hero-sub {
-  margin-top: 18px;
-  font-size: 16px;
-  opacity: 0.75;
-}
-
-.hero-buttons {
-  margin-top: 26px;
-  display: flex;
-  gap: 14px;
-}
-
-.btn {
-  padding: 10px 24px;
-  border-radius: 6px;
-  border: 2px solid #00f2ff;
-  background: transparent;
-  color: #00f2ff;
-  font-size: 13px;
-  cursor: pointer;
-  text-shadow: 0 0 8px #00f2ff;
-  box-shadow: 0 0 12px rgba(0,242,255,0.4);
-  transition: 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(255,255,255,0.3), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.btn:hover::after {
-  opacity: 1;
-}
-
-.btn:hover {
-  background: #00f2ff;
-  color: #000;
-  box-shadow: 0 0 20px #00f2ff;
-  transform: translateY(-1px);
-}
-
-.btn:active {
-  transform: translateY(1px) scale(0.98);
-}
-
-.btn-secondary {
-  border-color: #ff00ff;
-  color: #ff00ff;
-  text-shadow: 0 0 8px #ff00ff;
-  box-shadow: 0 0 12px rgba(255,0,255,0.4);
-}
-
-.btn-secondary:hover {
-  background: #ff00ff;
-  color: #000;
-  box-shadow: 0 0 20px #ff00ff;
-}
-
-.hero-right {
-  flex: 1;
-  max-width: 480px;
-  border-radius: 18px;
-  border: 1px solid rgba(0,255,255,0.3);
-  background: radial-gradient(circle at top, #151a2a 0, #05060a 60%);
-  padding: 18px;
-  position: relative;
-  box-shadow: 0 0 30px rgba(0,255,255,0.3);
-  transform-style: preserve-3d;
-  perspective: 800px;
-}
-
-.hero-screen-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  opacity: 0.8;
-  margin-bottom: 10px;
-}
-
-.hero-screen-body {
-  border-radius: 12px;
-  border: 1px solid rgba(0,255,255,0.3);
-  padding: 14px;
-  min-height: 220px;
-  background: radial-gradient(circle at top, rgba(0,255,255,0.15), transparent 60%);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-screen-body::before {
-  content: "";
-  position: absolute;
-  inset: -40%;
-  background: conic-gradient(from 0deg, rgba(0,255,255,0.1), transparent, rgba(255,0,255,0.1), transparent);
-  animation: rotateGlow 10s linear infinite;
-}
-
-@keyframes rotateGlow {
-  to { transform: rotate(360deg); }
-}
-
-.hero-screen-content {
-  position: relative;
-  z-index: 1;
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-.hero-screen-tag {
-  font-size: 11px;
-  color: #00f2ff;
-  margin-bottom: 6px;
-}
-
-.hero-screen-list {
-  margin-top: 10px;
-  list-style: none;
-}
-
-.hero-screen-list li {
-  margin-bottom: 4px;
-}
-
-/* ---------- COLLECTIONS ---------- */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 22px;
-}
-
-.card {
-  height: 360px;
-  border-radius: 14px;
-  border: 1px solid rgba(0,255,255,0.25);
-  background: #0a0f1a;
-  overflow: hidden;
-  position: relative;
-  cursor: pointer;
-  transition: 0.3s;
-  transform-style: preserve-3d;
-}
-
-.card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 0 22px #00f2ff;
-}
-
-.card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.8;
-  transition: 0.3s;
-}
-
-.card:hover img {
-  opacity: 1;
-}
-
-.card-title {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  font-size: 18px;
-  background: rgba(0,0,0,0.7);
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #00f2ff;
-  text-shadow: 0 0 8px #00f2ff;
-}
-
-/* ---------- INVENTORY ---------- */
-.inventory-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-}
-
-.item {
-  background: #0a0f1a;
-  border-radius: 12px;
-  border: 1px solid rgba(0,255,255,0.25);
-  padding: 12px;
-  position: relative;
-  transition: 0.25s;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.item::before {
-  content: "";
-  position: absolute;
-  inset: -40%;
-  background: radial-gradient(circle at top, rgba(0,255,255,0.15), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.item:hover::before {
-  opacity: 1;
-}
-
-.item:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 0 18px #00f2ff;
-}
-
-.item img {
-  width: 100%;
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.item-title {
-  font-size: 14px;
-}
-
-.item-rarity {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid;
-  position: relative;
-  overflow: hidden;
-}
-
-.item-rarity::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, rgba(255,255,255,0.4), transparent, rgba(255,255,255,0.4));
-  opacity: 0;
-  transform: translateX(-100%);
-  transition: transform 0.4s, opacity 0.4s;
-}
-
-.item:hover .item-rarity::after {
-  opacity: 1;
-  transform: translateX(100%);
-}
-
-.rarity-common { border-color: #888; color: #aaa; }
-.rarity-rare { border-color: #00f2ff; color: #00f2ff; box-shadow: 0 0 10px rgba(0,242,255,0.5); }
-.rarity-epic { border-color: #ff00ff; color: #ff00ff; box-shadow: 0 0 10px rgba(255,0,255,0.5); }
-.rarity-legendary { border-color: #ffb300; color: #ffb300; box-shadow: 0 0 10px rgba(255,179,0,0.6); }
-
-.item-meta {
-  font-size: 11px;
-  opacity: 0.7;
-  display: flex;
-  justify-content: space-between;
-}
-
-/* ---------- LORE ---------- */
-.lore-text {
-  max-width: 640px;
-  font-size: 14px;
-  opacity: 0.8;
-  line-height: 1.6;
-}
-
-.lore-highlight {
-  color: #00f2ff;
-}
-
-/* ---------- FOOTER ---------- */
-footer {
-  padding: 30px 40px;
-  text-align: center;
-  opacity: 0.6;
-  font-size: 12px;
-  border-top: 1px solid rgba(0,255,255,0.25);
-}
-
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 900px) {
-  .hero-inner {
-    flex-direction: column;
-  }
-  .hero-right {
-    width: 100%;
-  }
-  .section {
-    padding-inline: 20px;
-  }
-  nav {
-    padding-inline: 20px;
-  }
-  .hud {
-    left: 20px;
-  }
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>MONSTER APE – Streetwear Brand</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
+  <header class="header">
+    <div class="logo">MONSTER APE</div>
+    <nav class="nav">
+      <a href="#collections">Колекції</a>
+      <a href="#drop">Новий дроп</a>
+      <a href="#lookbook">Lookbook</a>
+      <a href="#stories">Stories</a>
+    </nav>
+    <a href="#" class="btn btn-outline">Shop</a>
+  </header>
 
-<div class="bg-layer"></div>
-<div class="bg-grid" id="bgGrid"></div>
-<div class="bg-particles" id="bgParticles"></div>
-<div class="scanlines"></div>
-
-<!-- LOADING SCREEN -->
-<div class="loading-screen" id="loadingScreen">
-  <div class="loading-noise"></div>
-  <div class="loading-title">NEXUS OPS // BOOTING</div>
-  <div class="loading-sub">CYBERWEAR INTERFACE v2.0</div>
-  <div class="loading-bar">
-    <div class="loading-bar-fill" id="loadingFill"></div>
-  </div>
-  <div class="loading-text" id="loadingText">Завантаження системи...</div>
-</div>
-
-<!-- SOUNDS -->
-<audio id="clickSound" preload="auto">
-  <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
-</audio>
-<audio id="hoverSound" preload="auto">
-  <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
-</audio>
-
-<nav>
-  <div class="logo">NEXUS OPS</div>
-  <div class="nav-links">
-    <button data-target="hero" class="active">Головна</button>
-    <button data-target="collections">Колекції</button>
-    <button data-target="inventory">Інвентар</button>
-    <button data-target="lore">Лор</button>
-  </div>
-</nav>
-
-<!-- HUD -->
-<div class="hud">
-  <div class="hud-label">HP // 80%</div>
-  <div class="hud-bar">
-    <div class="hud-bar-fill"></div>
-  </div>
-  <div class="hud-label">ENERGY // 55%</div>
-  <div class="hud-bar">
-    <div class="hud-bar-fill energy"></div>
-  </div>
-</div>
-
-<div class="page">
   <main>
     <!-- HERO -->
-    <section class="section active" id="hero">
-      <div class="hero-inner">
-        <div class="hero-left">
-          <h1 class="hero-title">CYBERWEAR<br>PROTOCOL</h1>
-          <p class="hero-sub">
-            Екіпірування нового покоління. Неон, технічні тканини, силуети майбутнього.  
-            Інтерфейс, що виглядає як меню AAA‑гри.
-          </p>
-          <div class="hero-buttons">
-            <button class="btn" data-target="collections">Перейти до колекцій</button>
-            <button class="btn btn-secondary" data-target="inventory">Відкрити інвентар</button>
-          </div>
+    <section class="hero">
+      <div class="hero-content">
+        <p class="hero-tagline">Premium Streetwear / Limited Drops</p>
+        <h1>URBAN JUNGLE<br />FOR REAL MONSTERS</h1>
+        <p class="hero-text">
+          Масивні силуети, агресивні принти, чистий силует. Інспіровано вулицями Токіо та Нью-Йорка.
+        </p>
+        <div class="hero-actions">
+          <a href="#drop" class="btn btn-primary">New Drop</a>
+          <a href="#lookbook" class="btn btn-ghost">View Lookbook</a>
         </div>
-        <div class="hero-right" id="heroTilt">
-          <div class="hero-screen-header">
-            <span>MODULE: STATUS</span>
-            <span>BUILD: 2077.13</span>
-          </div>
-          <div class="hero-screen-body">
-            <div class="hero-screen-content">
-              <div class="hero-screen-tag">SYSTEM LOG</div>
-              <p>› USER CONNECTED: MONSTER</p>
-              <p>› ACCESS LEVEL: STREET OPS</p>
-              <p>› MODE: VISUAL INTERFACE</p>
-              <ul class="hero-screen-list">
-                <li>• Неоновий інтерфейс</li>
-                <li>• Анімації між секціями</li>
-                <li>• HUD‑панель</li>
-                <li>• Інвентар з рідкістю предметів</li>
-                <li>• Паралакс‑фон, частинки, скан‑лінії</li>
-              </ul>
-            </div>
+      </div>
+      <div class="hero-image">
+        <div class="hero-card">
+          <div class="hero-label">SS25 DROP</div>
+          <div class="hero-photo"></div>
+          <div class="hero-meta">
+            <span>Oversized Hoodie</span>
+            <span>“Night Ape”</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- COLLECTIONS -->
-    <section class="section" id="collections">
-      <h2 class="section-title">Колекції</h2>
+    <section id="collections" class="section collections">
+      <div class="section-header">
+        <h2>Колекції</h2>
+        <p>Основні лінійки, які формують ДНК бренду.</p>
+      </div>
       <div class="grid">
-        <div class="card tilt">
-          <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80" alt="">
-          <div class="card-title">NEON STRIKE</div>
+        <article class="card">
+          <div class="card-image card-image-1"></div>
+          <div class="card-body">
+            <h3>Core Line</h3>
+            <p>Базові худі, футболки та штани з фірмовим логотипом.</p>
+            <a href="#" class="card-link">Переглянути</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-image card-image-2"></div>
+          <div class="card-body">
+            <h3>Limited Drops</h3>
+            <p>Обмежені релізи з унікальними патернами та колабораціями.</p>
+            <a href="#" class="card-link">Переглянути</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-image card-image-3"></div>
+          <div class="card-body">
+            <h3>Outerwear</h3>
+            <p>Парки, куртки та вітровки для міської зими.</p>
+            <a href="#" class="card-link">Переглянути</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- LATEST DROP -->
+    <section id="drop" class="section drop">
+      <div class="drop-inner">
+        <div class="drop-info">
+          <h2>New Drop: “Concrete Jungle”</h2>
+          <p>
+            Капсульна колекція з рефлективними деталями, масивними силуетами та глибокими темними відтінками.
+          </p>
+          <ul class="drop-list">
+            <li><span>10</span> унікальних позицій</li>
+            <li><span>300</span> одиниць кожного айтему</li>
+            <li><span>1</span> шанс забрати свій розмір</li>
+          </ul>
+          <a href="#" class="btn btn-primary">Shop the Drop</a>
         </div>
-        <div class="card tilt">
-          <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80" alt="">
-          <div class="card-title">SHADOW OPS</div>
-        </div>
-        <div class="card tilt">
-          <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80" alt="">
-          <div class="card-title">CYBER CORE</div>
+        <div class="drop-gallery">
+          <div class="drop-photo drop-photo-1"></div>
+          <div class="drop-photo drop-photo-2"></div>
         </div>
       </div>
     </section>
 
-    <!-- INVENTORY -->
-    <section class="section" id="inventory">
-      <h2 class="section-title">Інвентар</h2>
-      <div class="inventory-grid">
-        <div class="item tilt">
-          <img src="https://images.unsplash.com/photo-1602810318383-e386cc2a3f3e?auto=format&fit=crop&w=900&q=80" alt="">
-          <div class="item-header">
-            <div class="item-title">Hoodie “Pulse”</div>
-            <div class="item-rarity rarity-rare">RARE</div>
-          </div>
-          <div class="item-meta">
-            <span>DEF +12</span>
-            <span>€129</span>
-          </div>
-        </div>
-
-        <div class="item tilt">
-          <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80" alt="">
-          <div class="item-header">
-            <div class="item-title">Jacket “Spectre”</div>
-            <div class="item-rarity rarity-epic">EPIC</div>
-          </div>
-          <div class="item-meta">
-            <span>DEF +20</span>
-            <span>€189</span>
-          </div>
-        </div>
-
-        <div class="item tilt">
-          <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80" alt="">
-          <div class="item-header">
-            <div class="item-title">Pants “Vector”</div>
-            <div class="item-rarity rarity-common">COMMON</div>
-          </div>
-          <div class="item-meta">
-            <span>SPD +8</span>
-            <span>€139</span>
-          </div>
-        </div>
-
-        <div class="item tilt">
-          <img src="https://images.unsplash.com/photo-1523381294911-8d3cead13475?auto=format&fit=crop&w=900&q=80" alt="">
-          <div class="item-header">
-            <div class="item-title">T-shirt “Flux”</div>
-            <div class="item-rarity rarity-legendary">LEGENDARY</div>
-          </div>
-          <div class="item-meta">
-            <span>CHA +25</span>
-            <span>€59</span>
-          </div>
-        </div>
+    <!-- LOOKBOOK -->
+    <section id="lookbook" class="section lookbook">
+      <div class="section-header">
+        <h2>Lookbook</h2>
+        <p>Вулиця як подіум. Ніяких фільтрів.</p>
+      </div>
+      <div class="lookbook-grid">
+        <div class="lookbook-item lookbook-1"></div>
+        <div class="lookbook-item lookbook-2"></div>
+        <div class="lookbook-item lookbook-3"></div>
       </div>
     </section>
 
-    <!-- LORE -->
-    <section class="section" id="lore">
-      <h2 class="section-title">Лор</h2>
-      <div class="lore-text">
-        <p>
-          <span class="lore-highlight">NEXUS OPS</span> — це не просто бренд одягу.  
-          Це інтерфейс між вулицею та майбутнім. Кожен елемент екіпірування — як модуль у грі:
-          дає бонуси до стилю, впевненості та присутності.
-        </p>
-        <br>
-        <p>
-          У місті, де неон ніколи не гасне, а дані течуть швидше за дощ,  
-          твій силует — це твій аватар.  
-          Ти не просто носиш одяг — ти запускаєш протокол.
-        </p>
-        <br>
-        <p>
-          Цей сайт — це твій <span class="lore-highlight">HUD</span>.  
-          Колекції — це місії. Інвентар — це твій лоад-аут.  
-          Далі — тільки апгрейди.
-        </p>
+    <!-- УНІКАЛЬНА ФІШКА: STREET STORIES -->
+    <section id="stories" class="section stories">
+      <div class="section-header">
+        <h2>Street Stories</h2>
+        <p>Короткі історії, які передають атмосферу бренду.</p>
+      </div>
+      <div class="stories-marquee">
+        <div class="stories-track">
+          <div class="story-card">
+            <h4>Night Ride</h4>
+            <p>02:37, порожні вулиці, тільки ти, бетон і неон.</p>
+          </div>
+          <div class="story-card">
+            <h4>Rooftop Session</h4>
+            <p>Фотосет на даху, вітер рве капюшон, місто під ногами.</p>
+          </div>
+          <div class="story-card">
+            <h4>Subway Heat</h4>
+            <p>Переповнене метро, всі в чорному, ти — в “Night Ape”.</p>
+          </div>
+          <div class="story-card">
+            <h4>Back Alley</h4>
+            <p>Графіті, дим, музика з колонок, перший дроп бренду.</p>
+          </div>
+          <!-- дублюємо для безшовного скролу -->
+          <div class="story-card">
+            <h4>Night Ride</h4>
+            <p>02:37, порожні вулиці, тільки ти, бетон і неон.</p>
+          </div>
+          <div class="story-card">
+            <h4>Rooftop Session</h4>
+            <p>Фотосет на даху, вітер рве капюшон, місто під ногами.</p>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer>
-    © 2026 NEXUS OPS. Всі права захищені.
+  <footer class="footer">
+    <div>© 2026 MONSTER APE. All Rights Reserved.</div>
+    <div class="footer-links">
+      <a href="#">Instagram</a>
+      <a href="#">TikTok</a>
+      <a href="#">Contact</a>
+    </div>
   </footer>
-</div>
 
-<script>
-// LOADING SCREEN
-const loadingScreen = document.getElementById('loadingScreen');
-const loadingFill = document.getElementById('loadingFill');
-const loadingText = document.getElementById('loadingText');
-
-let progress = 0;
-const loadingInterval = setInterval(() => {
-  progress += Math.random() * 18;
-  if (progress > 100) progress = 100;
-  loadingFill.style.width = progress + '%';
-
-  if (progress < 30) loadingText.textContent = 'Завантаження системи...';
-  else if (progress < 60) loadingText.textContent = 'Синхронізація модулів інтерфейсу...';
-  else if (progress < 90) loadingText.textContent = 'Ініціалізація HUD та інвентаря...';
-  else loadingText.textContent = 'Підключення до NEXUS OPS...';
-
-  if (progress >= 100) {
-    clearInterval(loadingInterval);
-    setTimeout(() => {
-      loadingScreen.style.opacity = '0';
-      loadingScreen.style.pointerEvents = 'none';
-      setTimeout(() => loadingScreen.style.display = 'none', 400);
-    }, 400);
-  }
-}, 220);
-
-// SECTION SWITCHING + TRANSITION
-const navButtons = document.querySelectorAll('.nav-links button');
-const sections = document.querySelectorAll('.section');
-const heroButtons = document.querySelectorAll('[data-target]');
-const clickSound = document.getElementById('clickSound');
-const hoverSound = document.getElementById('hoverSound');
-
-function playClick() {
-  if (!clickSound) return;
-  clickSound.currentTime = 0;
-  clickSound.play().catch(() => {});
-}
-
-function playHover() {
-  if (!hoverSound) return;
-  hoverSound.currentTime = 0;
-  hoverSound.play().catch(() => {});
-}
-
-function showSection(id) {
-  sections.forEach(sec => {
-    if (sec.id === id) sec.classList.add('active');
-    else sec.classList.remove('active');
-  });
-  navButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.target === id);
-  });
-  playClick();
-}
-
-navButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.target;
-    showSection(target);
-  });
-  btn.addEventListener('mouseenter', playHover);
-});
-
-heroButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.target;
-    if (target) showSection(target);
-  });
-});
-
-// PARALLAX GRID
-const bgGrid = document.getElementById('bgGrid');
-document.addEventListener('mousemove', (e) => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 20;
-  const y = (e.clientY / window.innerHeight - 0.5) * 20;
-  bgGrid.style.transform = `translate(${x}px, ${y}px)`;
-});
-
-// PARTICLES
-const bgParticles = document.getElementById('bgParticles');
-function createParticle() {
-  const p = document.createElement('div');
-  p.classList.add('particle');
-  const size = Math.random() * 3 + 2;
-  p.style.width = size + 'px';
-  p.style.height = size + 'px';
-  p.style.left = Math.random() * 100 + '%';
-  p.style.bottom = '-10px';
-  const duration = Math.random() * 6 + 4;
-  p.style.animationDuration = duration + 's';
-  bgParticles.appendChild(p);
-  setTimeout(() => p.remove(), duration * 1000);
-}
-setInterval(createParticle, 300);
-
-// 3D TILT
-function addTilt(el) {
-  el.addEventListener('mousemove', (e) => {
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -6;
-    const rotateY = ((x - centerX) / centerX) * 6;
-    el.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px) scale(1.02)`;
-  });
-  el.addEventListener('mouseleave', () => {
-    el.style.transform = 'rotateX(0deg) rotateY(0deg) translateY(0) scale(1)';
-  });
-}
-
-const tiltElements = document.querySelectorAll('.tilt');
-tiltElements.forEach(addTilt);
-
-const heroTilt = document.getElementById('heroTilt');
-if (heroTilt) addTilt(heroTilt);
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
