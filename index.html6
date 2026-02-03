@@ -1,241 +1,271 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>VOIDWEAR — Future Streetwear</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>NEXUS OPS — Cyberwear Store</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    /* -------------------- CORE -------------------- */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: "Inter", sans-serif;
-      background: #000;
-      color: #fff;
-      overflow-x: hidden;
-    }
-    a { color: inherit; text-decoration: none; }
+<style>
+/* ---------------- CORE ---------------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Orbitron", sans-serif;
+  background: #05060a;
+  color: #fff;
+  overflow-x: hidden;
+}
 
-    /* -------------------- NAV -------------------- */
-    nav {
-      width: 100%;
-      padding: 24px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 100;
-      backdrop-filter: blur(12px);
-      background: rgba(0,0,0,0.4);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-    }
-    .nav-links {
-      display: flex;
-      gap: 32px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-    .nav-links a:hover { opacity: 1; }
+/* ---------------- ANIMATED BACKGROUND ---------------- */
+.bg {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #0a0f1a 0%, #05060a 70%);
+  z-index: -2;
+}
 
-    /* -------------------- HERO -------------------- */
-    .hero {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      padding: 0 40px;
-      position: relative;
-    }
+.scanlines {
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.03) 0px,
+    rgba(255,255,255,0.03) 1px,
+    transparent 2px
+  );
+  z-index: -1;
+  pointer-events: none;
+  animation: scan 6s linear infinite;
+}
 
-    .hero-title {
-      font-size: clamp(48px, 8vw, 120px);
-      font-weight: 700;
-      line-height: 0.9;
-      letter-spacing: -0.03em;
-      max-width: 700px;
-      z-index: 2;
-    }
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
 
-    .hero-sub {
-      margin-top: 20px;
-      font-size: 18px;
-      max-width: 420px;
-      opacity: 0.7;
-    }
+/* ---------------- NAV ---------------- */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(10, 12, 20, 0.6);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,255,255,0.2);
+  z-index: 100;
+}
 
-    .hero-btns {
-      margin-top: 30px;
-      display: flex;
-      gap: 16px;
-    }
+.logo {
+  font-size: 26px;
+  font-weight: 700;
+  color: #00f2ff;
+  text-shadow: 0 0 12px #00f2ff;
+}
 
-    .btn {
-      padding: 12px 26px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.05);
-      cursor: pointer;
-      transition: 0.25s;
-      font-size: 14px;
-    }
-    .btn:hover {
-      background: rgba(255,255,255,0.15);
-    }
-    .btn-primary {
-      background: #fff;
-      color: #000;
-      font-weight: 600;
-    }
-    .btn-primary:hover {
-      background: #e5e5e5;
-    }
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
 
-    .hero-img {
-      position: absolute;
-      right: 0;
-      top: 0;
-      height: 100%;
-      width: 50%;
-      background: url('https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
-      filter: brightness(0.7);
-      animation: fadeIn 1.6s ease-out forwards;
-    }
+.nav-links a {
+  color: #fff;
+  font-size: 14px;
+  opacity: 0.8;
+  transition: 0.2s;
+}
+.nav-links a:hover {
+  opacity: 1;
+  color: #00f2ff;
+  text-shadow: 0 0 8px #00f2ff;
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(1.05); }
-      to { opacity: 1; transform: scale(1); }
-    }
+/* ---------------- PAGE TRANSITION ---------------- */
+.page {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 1s ease-out forwards;
+}
 
-    /* -------------------- COLLECTIONS -------------------- */
-    .section {
-      padding: 120px 40px;
-    }
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-    .section-title {
-      font-size: 42px;
-      margin-bottom: 40px;
-      letter-spacing: -0.02em;
-    }
+/* ---------------- HERO ---------------- */
+.hero {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 0 50px;
+}
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-    }
+.hero-title {
+  font-size: clamp(40px, 7vw, 100px);
+  font-weight: 700;
+  line-height: 0.9;
+  color: #00f2ff;
+  text-shadow: 0 0 20px #00f2ff;
+  animation: glitch 2s infinite;
+}
 
-    .card {
-      position: relative;
-      height: 420px;
-      border-radius: 20px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: 0.4s;
-    }
-    .card:hover { transform: translateY(-6px); }
+@keyframes glitch {
+  0% { text-shadow: 0 0 20px #00f2ff; }
+  20% { text-shadow: 2px 0 red, -2px 0 blue; }
+  40% { text-shadow: -2px 0 red, 2px 0 blue; }
+  60% { text-shadow: 0 0 20px #00f2ff; }
+  100% { text-shadow: 0 0 20px #00f2ff; }
+}
 
-    .card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: brightness(0.75);
-      transition: 0.4s;
-    }
-    .card:hover img { filter: brightness(0.95); }
+.hero-sub {
+  margin-top: 20px;
+  font-size: 18px;
+  opacity: 0.7;
+  max-width: 420px;
+}
 
-    .card-title {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      font-size: 24px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-    }
+.btn {
+  margin-top: 30px;
+  padding: 12px 30px;
+  border: 2px solid #00f2ff;
+  background: transparent;
+  color: #00f2ff;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.25s;
+  text-shadow: 0 0 8px #00f2ff;
+}
+.btn:hover {
+  background: #00f2ff;
+  color: #000;
+  box-shadow: 0 0 20px #00f2ff;
+}
 
-    /* -------------------- PRODUCTS -------------------- */
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 24px;
-      margin-top: 40px;
-    }
+/* ---------------- SECTIONS ---------------- */
+.section {
+  padding: 120px 50px;
+}
 
-    .product {
-      background: #111;
-      border-radius: 16px;
-      padding: 16px;
-      transition: 0.3s;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-    .product:hover {
-      transform: translateY(-4px);
-      background: #181818;
-    }
+.section-title {
+  font-size: 36px;
+  margin-bottom: 40px;
+  color: #00f2ff;
+  text-shadow: 0 0 12px #00f2ff;
+}
 
-    .product img {
-      width: 100%;
-      border-radius: 12px;
-      margin-bottom: 12px;
-    }
+/* ---------------- COLLECTIONS ---------------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 26px;
+}
 
-    .product-title {
-      font-size: 16px;
-      margin-bottom: 6px;
-    }
+.card {
+  height: 420px;
+  border: 1px solid rgba(0,255,255,0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: 0.3s;
+  background: #0a0f1a;
+}
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 20px #00f2ff;
+}
 
-    .product-price {
-      font-size: 14px;
-      opacity: 0.7;
-    }
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  transition: 0.3s;
+}
+.card:hover img {
+  opacity: 1;
+}
 
-    /* -------------------- FOOTER -------------------- */
-    footer {
-      padding: 40px;
-      text-align: center;
-      opacity: 0.6;
-      font-size: 14px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      margin-top: 80px;
-    }
+.card-title {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 20px;
+  background: rgba(0,0,0,0.6);
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #00f2ff;
+  text-shadow: 0 0 8px #00f2ff;
+}
 
-    /* -------------------- RESPONSIVE -------------------- */
-    @media (max-width: 900px) {
-      .hero-img { display: none; }
-      .hero { padding-top: 120px; }
-    }
-  </style>
+/* ---------------- PRODUCTS ---------------- */
+.product {
+  background: #0a0f1a;
+  border: 1px solid rgba(0,255,255,0.2);
+  border-radius: 12px;
+  padding: 16px;
+  transition: 0.3s;
+}
+.product:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px #00f2ff;
+}
+
+.product img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.product-title {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.product-price {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* ---------------- FOOTER ---------------- */
+footer {
+  padding: 40px;
+  text-align: center;
+  opacity: 0.6;
+  font-size: 14px;
+  border-top: 1px solid rgba(0,255,255,0.2);
+  margin-top: 80px;
+}
+</style>
 </head>
 
 <body>
 
-  <!-- NAV -->
-  <nav>
-    <div class="logo">VOIDWEAR</div>
-    <div class="nav-links">
-      <a href="#collections">Колекції</a>
-      <a href="#products">Новинки</a>
-      <a href="#about">Про бренд</a>
-    </div>
-  </nav>
+<div class="bg"></div>
+<div class="scanlines"></div>
+
+<nav>
+  <div class="logo">NEXUS OPS</div>
+  <div class="nav-links">
+    <a href="#collections">Колекції</a>
+    <a href="#products">Інвентар</a>
+    <a href="#about">Лор</a>
+  </div>
+</nav>
+
+<div class="page">
 
   <!-- HERO -->
   <section class="hero">
     <div>
-      <h1 class="hero-title">Майбутнє<br>стрітвиру.</h1>
-      <p class="hero-sub">Технічні тканини. Чисті лінії. Силуети нового покоління.</p>
-
-      <div class="hero-btns">
-        <button class="btn-primary btn">Переглянути</button>
-        <button class="btn">Лукбук</button>
-      </div>
+      <h1 class="hero-title">CYBER<br>WEAR<br>PROTOCOL</h1>
+      <p class="hero-sub">Екіпірування нового покоління. Неон. Технології. Стиль майбутнього.</p>
+      <button class="btn">Активувати</button>
     </div>
-
-    <div class="hero-img"></div>
   </section>
 
   <!-- COLLECTIONS -->
@@ -244,56 +274,59 @@
 
     <div class="grid">
       <div class="card">
-        <img src="https://images.unsplash.com/photo-1523381294911-8d3cead13475?auto=format&fit=crop&w=900&q=80">
-        <div class="card-title">Urban Core</div>
+        <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80">
+        <div class="card-title">NEON STRIKE</div>
       </div>
 
       <div class="card">
         <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80">
-        <div class="card-title">Night Division</div>
+        <div class="card-title">SHADOW OPS</div>
       </div>
 
       <div class="card">
-        <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80">
-        <div class="card-title">Tech Motion</div>
+        <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80">
+        <div class="card-title">CYBER CORE</div>
       </div>
     </div>
   </section>
 
   <!-- PRODUCTS -->
   <section class="section" id="products">
-    <h2 class="section-title">Новинки</h2>
+    <h2 class="section-title">Інвентар</h2>
 
-    <div class="product-grid">
+    <div class="grid">
       <div class="product">
         <img src="https://images.unsplash.com/photo-1602810318383-e386cc2a3f3e?auto=format&fit=crop&w=900&q=80">
-        <div class="product-title">Hoodie “Zero Pulse”</div>
+        <div class="product-title">Hoodie “Pulse”</div>
         <div class="product-price">€129</div>
       </div>
 
       <div class="product">
         <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80">
-        <div class="product-title">Shell Jacket “Vortex”</div>
+        <div class="product-title">Jacket “Spectre”</div>
         <div class="product-price">€189</div>
       </div>
 
       <div class="product">
         <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80">
-        <div class="product-title">Tech Pants “Axis”</div>
+        <div class="product-title">Pants “Vector”</div>
         <div class="product-price">€139</div>
       </div>
 
       <div class="product">
-        <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80">
-        <div class="product-title">T-shirt “Signal”</div>
+        <img src="https://images.unsplash.com/photo-1523381294911-8d3cead13475?auto=format&fit=crop&w=900&q=80">
+        <div class="product-title">T-shirt “Flux”</div>
         <div class="product-price">€59</div>
       </div>
     </div>
   </section>
 
   <footer>
-    © 2026 VOIDWEAR. Усі права захищені.
+    © 2026 NEXUS OPS. Всі права захищені.
   </footer>
+
+</div>
 
 </body>
 </html>
+
