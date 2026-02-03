@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>MONSTER APE – Streetwear Brand</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0b0d10;
+      --accent: #f5ff3b;
+      --accent-soft: rgba(245, 255, 59, 0.12);
+      --text: #f5f5f5;
+      --muted: #9a9a9a;
+      --border: #22252b;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+      --transition-fast: 0.25s ease-out;
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Inter", sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-main);
+      background: radial-gradient(circle at top, #151821 0, #050608 55%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* HEADER */
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 6vw;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(
+        to bottom,
+        rgba(5, 6, 8, 0.92),
+        rgba(5, 6, 8, 0.7),
+        transparent
+      );
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .logo {
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 24px;
+      font-size: 14px;
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      position: relative;
+      padding-bottom: 4px;
+      transition: color var(--transition-fast);
+    }
+
+    .nav a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent);
+      transition: width var(--transition-fast);
+    }
+
+    .nav a:hover {
+      color: var(--text);
+    }
+
+    .nav a:hover::after {
+      width: 100%;
+    }
+
+    /* BUTTONS */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 40px rgba(245, 255, 59, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 60px rgba(245, 255, 59, 0.4);
+    }
+
+    .btn-outline {
+      border-color: rgba(255, 255, 255, 0.16);
+      color: var(--text);
+      background: rgba(5, 6, 8, 0.7);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-ghost {
+      border-color: transparent;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* LAYOUT */
+
+    main {
+      padding: 40px 6vw 80px;
+    }
+
+    .section {
+      margin-top: 80px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .section-header h2 {
+      font-size: 24px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .section-header p {
+      color: var(--muted);
+      max-width: 360px;
+      font-size: 14px;
+    }
+
+    /* HERO */
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 40px;
+      align-items: center;
+      margin-top: 40px;
+    }
+
+    .hero-tagline {
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      font-size: clamp(40px, 5vw, 60px);
+      line-height: 1.02;
+      margin: 0 0 16px;
+    }
+
+    .hero-text {
+      color: var(--muted);
+      max-width: 420px;
+      font-size: 14px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .hero-image {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .hero-card {
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at top, #252836, #050608);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      transform: translateY(0);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at top, rgba(245, 255, 59, 0.12), transparent);
+      opacity: 0.7;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .hero-card:hover {
+      transform: translateY(-6px) rotate3d(1, -1, 0, 6deg);
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+    }
+
+    .hero-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .hero-photo {
+      border-radius: var(--radius-md);
+      height: 260px;
+      background-image: url("https://images.pexels.com/photos/6311579/pexels-photo-6311579.jpeg?auto=compress&cs=tinysrgb&w=1200");
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-photo::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+    }
+
+    .hero-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* COLLECTIONS */
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, #0b0d10, #050608);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+        border-color var(--transition-fast);
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+      border-color: rgba(245, 255, 59, 0.4);
+    }
+
+    .card-image {
+      height: 200px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .card-image-1 {
+      background-image: url("https://images.pexels.com/photos/6311578/pexels-photo-6311578.jpeg?auto=compress&cs=tinysrgb&w=1200");
+    }
+
+    .card-image-2 {
+      background-image: url("https://images.pexels.com/photos/6311577/pexels-photo-6311577.jpeg?auto=compress&cs=tinysrgb&w=1200");
+    }
+
+    .card-image-3 {
+      background-image: url("https://images.pexels.com/photos/6311580/pexels-photo-6311580.jpeg?auto=compress&cs=tinysrgb&w=1200");
+    }
+
+    .card-body {
+      padding: 16px 18px 18px;
+    }
+
+    .card-body h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .card-body p {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .card-link {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* DROP */
+
+    .drop {
+      margin-top: 90px;
+    }
+
+    .drop-inner {
+      border-radius: 32px;
+      background: radial-gradient(circle at top left, #202331, #050608);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 32px 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 28px;
+    }
+
+    .drop-info h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .drop-info p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 420px;
+    }
+
+    .drop-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .drop-list li span {
+      font-weight: 700;
+      color: var(--accent);
+      margin-right: 4px;
+    }
+
+    .drop-gallery {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 10px;
+    }
+
+    .drop-photo {
+      border-radius: var(--radius-md);
+      background-size: cover;
+      background-position: center;
+      min-height: 220px;
+    }
+
+    .drop-photo-1 {
+      background-image: url("https://images.pexels.com/photos/6311581/pexels-photo-6311581.jpeg?auto=compress&cs=tinysrgb&w=1200");
+    }
+
+    .drop-photo-2 {
+      background-image: url("https://images.pexels.com/photos/6311582/pexels-photo-6311582.jpeg?auto=compress&cs=tinysrgb&w=1200");
+    }
+
+    /* LOOKBOOK */
+
+    .lookbook-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .lookbook-item {
+      border-radius: var(--radius-lg);
+      background-size: cover;
+      background-position: center;
+      min-height: 260px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lookbook-item::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+    }
+
+    .lookbook-1 {
+      background-image: url("https://images.pexels.com/photos/6311583/pexels-photo-6311583.jpeg?auto=compress&cs=tinysrgb&w=1200");
+    }
+
+    .lookbook-2 {
+      background-image: url("https://images.pexels.com/photos/6311584/pexels-photo-6311584.jpeg?auto=compress&cs=tinysrgb&w=1200");
+    }
+
+    .lookbook-3 {
+      background-image: url("https://images.pexels.com/photos/6311585/pexels-photo-6311585.jpeg?auto=compress&cs=tinysrgb&w=1200");
+    }
+
+    /* STORIES – УНІКАЛЬНА ФІШКА */
+
+    .stories {
+      margin-top: 90px;
+    }
+
+    .stories-marquee {
+      margin-top: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: radial-gradient(circle at center, var(--accent-soft), transparent);
+      overflow: hidden;
+      padding: 10px 0;
+    }
+
+    .stories-track {
+      display: inline-flex;
+      gap: 16px;
+      animation: marquee 28s linear infinite;
+      padding-left: 16px;
+    }
+
+    .story-card {
+      min-width: 220px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(5, 6, 8, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .story-card h4 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .story-card p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @keyframes marquee {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* FOOTER */
+
+    .footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 20px 6vw 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 960px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-image {
+        order: -1;
+        justify-content: flex-start;
+      }
+
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .drop-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .lookbook-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .header {
+        gap: 12px;
+      }
+
+      .nav {
+        display: none;
+      }
+
+      main {
+        padding-inline: 4vw;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lookbook-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">MONSTER APE</div>
+    <nav class="nav">
+      <a href="#collections">Колекції</a>
+      <a href="#drop">Новий дроп</a>
+      <a href="#lookbook">Lookbook</a>
+      <a href="#stories">Stories</a>
+    </nav>
+    <a href="#" class="btn btn-outline">Shop</a>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-content">
+        <p class="hero-tagline">Premium Streetwear / Limited Drops</p>
+        <h1>URBAN JUNGLE<br />FOR REAL MONSTERS</h1>
+        <p class="hero-text">
+          Масивні силуети, агресивні принти, чистий силует. Інспіровано вулицями Токіо та Нью-Йорка.
+        </p>
+        <div class="hero-actions">
+          <a href="#drop" class="btn btn-primary">New Drop</a>
+          <a href="#lookbook" class="btn btn-ghost">View Lookbook</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="hero-card">
+          <div class="hero-label">SS25 DROP</div>
+          <div class="hero-photo"></div>
+          <div class="hero-meta">
+            <span>Oversized Hoodie</span>
+            <span>“Night Ape”</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLLECTIONS -->
+    <section id="collections" class="section collections">
+      <div class="section-header">
+        <h2>Колекції</h2>
+        <p>Основні лінійки, які формують ДНК бренду.</p>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <div class="card-image card-image-1"></div>
+          <div class="card-body">
+            <h3>Core Line</h3>
+            <p>Базові худі, футболки та штани з фірмовим логотипом.</p>
+            <a href="#" class="card-link">Переглянути</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-image card-image-2"></div>
+          <div class="card-body">
+            <h3>Limited Drops</h3>
+            <p>Обмежені релізи з унікальними патернами та колабораціями.</p>
+            <a href="#" class="card-link">Переглянути</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-image card-image-3"></div>
+          <div class="card-body">
+            <h3>Outerwear</h3>
+            <p>Парки, куртки та вітровки для міської зими.</p>
+            <a href="#" class="card-link">Переглянути</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- LATEST DROP -->
+    <section id="drop" class="section drop">
+      <div class="drop-inner">
+        <div class="drop-info">
+          <h2>New Drop: “Concrete Jungle”</h2>
+          <p>
+            Капсульна колекція з рефлективними деталями, масивними силуетами та глибокими темними відтінками.
+          </p>
+          <ul class="drop-list">
+            <li><span>10</span> унікальних позицій</li>
+            <li><span>300</span> одиниць кожного айтему</li>
+            <li><span>1</span> шанс забрати свій розмір</li>
+          </ul>
+          <a href="#" class="btn btn-primary">Shop the Drop</a>
+        </div>
+        <div class="drop-gallery">
+          <div class="drop-photo drop-photo-1"></div>
+          <div class="drop-photo drop-photo-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOOKBOOK -->
+    <section id="lookbook" class="section lookbook">
+      <div class="section-header">
+        <h2>Lookbook</h2>
+        <p>Вулиця як подіум. Ніяких фільтрів.</p>
+      </div>
+      <div class="lookbook-grid">
+        <div class="lookbook-item lookbook-1"></div>
+        <div class="lookbook-item lookbook-2"></div>
+        <div class="lookbook-item lookbook-3"></div>
+      </div>
+    </section>
+
+    <!-- STREET STORIES – УНІКАЛЬНА ФІШКА -->
+    <section id="stories" class="section stories">
+      <div class="section-header">
+        <h2>Street Stories</h2>
+        <p>Короткі історії, які передають атмосферу бренду.</p>
+      </div>
+      <div class="stories-marquee">
+        <div class="stories-track">
+          <div class="story-card">
+            <h4>Night Ride</h4>
+            <p>02:37, порожні вулиці, тільки ти, бетон і неон.</p>
+          </div>
+          <div class="story-card">
+            <h4>Rooftop Session</h4>
+            <p>Фотосет на даху, вітер рве капюшон, місто під ногами.</p>
+          </div>
+          <div class="story-card">
+            <h4>Subway Heat</h4>
+            <p>Переповнене метро, всі в чорному, ти — в “Night Ape”.</p>
+          </div>
+          <div class="story-card">
+            <h4>Back Alley</h4>
+            <p>Графіті, дим, музика з колонок, перший дроп бренду.</p>
+          </div>
+          <!-- дубль для безшовного скролу -->
+          <div class="story-card">
+            <h4>Night Ride</h4>
+            <p>02:37, порожні вулиці, тільки ти, бетон і неон.</p>
+          </div>
+          <div class="story-card">
+            <h4>Rooftop Session</h4>
+            <p>Фотосет на даху, вітер рве капюшон, місто під ногами.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>© 2026 MONSTER APE. All Rights Reserved.</div>
+    <div class="footer-links">
+      <a href="#">Instagram</a>
+      <a href="#">TikTok</a>
+      <a href="#">Contact</a>
+    </div>
+  </footer>
+
+  <script>
+    // Легкий паралакс-ефект для hero-карти при скролі
+    const heroCard = document.querySelector(".hero-card");
+
+    if (heroCard) {
+      window.addEventListener("scroll", () => {
+        const offset = window.scrollY * 0.05;
+        heroCard.style.transform =
+          "translateY(" + (-6 - offset) + "px) rotate3d(1, -1, 0, 6deg)";
+      });
+    }
+  </script>
+</body>
+</html>
