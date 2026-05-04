@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tornado Chase - Штормова гонка</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* ====== MENU ====== */
+        #menu {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        #menu h1 {
+            font-size: 4em;
+            text-shadow: 0 0 30px #e94560, 0 0 60px #e94560;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        #menu .subtitle {
+            font-size: 1.3em;
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        .menu-btn {
+            padding: 15px 50px;
+            margin: 10px;
+            font-size: 1.3em;
+            border: 2px solid #e94560;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .menu-btn:hover {
+            background: #e94560;
+            box-shadow: 0 0 30px #e94560;
+            transform: scale(1.1);
+        }
+
+        .menu-stats {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            text-align: center;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-box .value {
+            font-size: 2em;
+            color: #e94560;
+            font-weight: bold;
+        }
+
+        /* ====== GAME UI ====== */
+        #gameUI {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 20px; right: 20px;
+            width: 200px; height: 200px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #minimap canvas {
+            width: 100%; height: 100%;
+        }
+
+        #windRadar {
+            position: absolute;
+            top: 20px; left: 20px;
+            width: 150px; height: 150px;
+            background: rgba(0,20,0,0.9);
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        #windRadar canvas {
+            width: 100%; height: 100%;
+        }
+
+        .radar-label {
+            position: absolute;
+            top: 175px; left: 20px;
+            color: #00ff00;
+            font-size: 0.9em;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        #hud {
+            position: absolute;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .hud-item {
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+
+        .hud-item .label {
+            font-size: 0.8em;
+            color: #aaa;
+        }
+
+        .hud-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        #phaseIndicator {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            text-shadow: 0 0 30px white;
+            opacity: 0;
+            transition: opacity 1s;
+            pointer-events: none;
+        }
+
+        #leaderboard {
+            position: absolute;
+            top: 240px; right: 20px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #e94560;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 180px;
+        }
+
+        #leaderboard h3 {
+            color: #e94560;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .leader-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .leader-item.me {
+            color: #ffd700;
+        }
+
+        #messages {
+            position: absolute;
+            bottom: 120px; left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .msg {
+            background: rgba(0,0,0,0.7);
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin: 5px;
+            animation: fadeUp 3s forwards;
+        }
+
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* ====== CANVAS ====== */
+        #gameCanvas {
+            display: none;
+            background: #2d5016;
+        }
+
+        #deathScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+        }
+
+        #deathScreen h2 {
+            font-size: 3em;
+            color: #e94560;
+            margin-bottom: 20px;
+        }
+
+        .skull {
+            font-size: 5em;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        #settings {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .setting-row {
+            margin: 15px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .setting-row label {
+            width: 200px;
+            text-align: right;
+        }
+
+        .setting-row input[type="range"] {
+            width: 200px;
+        }
+
+        .back-btn {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ====== MENU ====== -->
+<div id="menu">
+    <h1>🌪️ TORNADO CHASE</h1>
+    <p class="subtitle">Виживи в штормі. Знайди торнадо. Переможи!</p>
+    <button class="menu-btn" onclick="startGame()">🎮 Грати</button>
+    <button class="menu-btn" onclick="showSettings()">⚙️ Налаштування</button>
+    <button class="menu-btn" onclick="showHowTo()">❓ Як грати</button>
+    
+    <div class="menu-stats">
+        <div class="stat-box">
+            <div class="label">Рекорд</div>
+            <div class="value" id="bestScore">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Ігор</div>
+            <div class="value" id="gamesPlayed">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Перемог</div>
+            <div class="value" id="wins">0</div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SETTINGS ====== -->
+<div id="settings">
+    <h1>⚙️ Налаштування</h1>
+    <div class="setting-row">
+        <label>Ім'я гравця:</label>
+        <input type="text" id="playerName" value="Гравець" style="padding:8px; font-size:1em; width:200px;">
+    </div>
+    <div class="setting-row">
+        <label>Чутливість:</label>
+        <input type="range" id="sensitivity" min="1" max="10" value="5">
+    </div>
+    <div class="setting-row">
+        <label>Гучність:</label>
+        <input type="range" id="volume" min="0" max="100" value="70">
+    </div>
+    <button class="menu-btn back-btn" onclick="hideSettings()">⬅️ Назад</button>
+</div>
+
+<!-- ====== HOW TO PLAY ====== -->
+<div id="howTo" style="display:none; position:fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:1001;flex-direction:column;align-items:center;justify-content:center;padding:40px;">
+    <h1>❓ Як грати</h1>
+    <div style="max-width:600px; line-height:2; font-size:1.1em;">
+        <p>🎮 <b>WASD</b> або <b>Стрілки</b> — керування машиною</p>
+        <p>⛽ <b>Заправки</b> — відновлюють паливо та ремонтують машину</p>
+        <p>🌪️ <b>Фаза 1 (Шторм)</b> — уникай торнадо, збирай бонуси</p>
+        <p>🌪️ <b>Фаза 2 (Торнадо)</b> — одне велике торнадо! Хто перший доторкнеться — перемагає!</p>
+        <p>💀 Якщо торнадо зловить тебе — ти вибуваєш!</p>
+        <p>🏆 Переможець — той, хто першим доторкнеться до фінального торнадо!</p>
+    </div>
+    <button class="menu-btn back-btn" onclick="hideHowTo()">⬅️ Назад</button>
+</div>
+
+<!-- ====== GAME ====== -->
+<canvas id="gameCanvas"></canvas>
+
+<div id="gameUI">
+    <div id="windRadar">
+        <canvas id="radarCanvas" width="150" height="150"></canvas>
+    </div>
+    <div class="radar-label">🌬️ Радар вітру</div>
+    
+    <div id="minimap">
+        <canvas id="minimapCanvas" width="200" height="200"></canvas>
+    </div>
+    
+    <div id="leaderboard">
+        <h3>🏆 Турнірна таблиця</h3>
+        <div id="leaderList"></div>
+    </div>
+    
+    <div id="hud">
+        <div class="hud-item">
+            <div class="label">⛽ Паливо</div>
+            <div class="value" id="fuelDisplay">100%</div>
+        </div>
+        <div class="hud-item">
+            <div class="label">❤️ Здоров'я</div>
+            <div class="value" id="healthDisplay">100%</div>
+        </div>
+        <div class="hud-item">
+            <div class="label">⚡ Швидкість</div>
+            <div class="value" id="speedDisplay">0</div>
+        </div>
+        <div class="hud-item">
+            <div class="label">🌪️ Фаза</div>
+            <div class="value" id="phaseDisplay">Шторм</div>
+        </div>
+        <div class="hud-item">
+            <div class="label">⏱️ Час</div>
+            <div class="value" id="timeDisplay">0:00</div>
+        </div>
+    </div>
+    
+    <div id="phaseIndicator"></div>
+    <div id="messages"></div>
+</div>
+
+<!-- ====== DEATH SCREEN ====== -->
+<div id="deathScreen">
+    <div class="skull">💀</div>
+    <h2>ТОРНАДО ЗНИЩИЛО ТЕБЕ!</h2>
+    <p id="deathReason" style="font-size:1.3em; margin-bottom:20px;">Ти був затягнутий у вихор...</p>
+    <p id="finalScore" style="font-size:1.5em; color:#ffd700; margin-bottom:30px;"></p>
+    <button class="menu-btn" onclick="backToMenu()">🏠 Меню</button>
+    <button class="menu-btn" onclick="startGame()">🔄 Заново</button>
+</div>
+
+<script>
+// ==================== GAME ENGINE ====================
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const radarCanvas = document.getElementById('radarCanvas');
+const radarCtx = radarCanvas.getContext('2d');
+const minimapCanvas = document.getElementById('minimapCanvas');
+const minimapCtx = minimapCanvas.getContext('2d');
+
+// Game state
+let gameRunning = false;
+let gameTime = 0;
+let phase = 'storm'; // 'storm' or 'tornado'
+let phaseTime = 0;
+let camera = { x: 0, y: 0 };
+let particles = [];
+let rainDrops = [];
+let screenShake = 0;
+
+// Map size
+const MAP_WIDTH = 4000;
+const MAP_HEIGHT = 4000;
+
+// Settings
+let playerName = localStorage.getItem('tornado_name') || 'Гравець';
+let sensitivity = 5;
+let volume = 70;
+
+// Stats
+let bestScore = parseInt(localStorage.getItem('tornado_best') || '0');
+let gamesPlayed = parseInt(localStorage.getItem('tornado_games') || '0');
+let wins = parseInt(localStorage.getItem('tornado_wins') || '0');
+
+// Update menu stats
+document.getElementById('bestScore').textContent = bestScore;
+document.getElementById('gamesPlayed').textContent = gamesPlayed;
+document.getElementById('wins').textContent = wins;
+
+// ==================== CLASSES ====================
+
+class Vector2 {
+    constructor(x, y) { this.x = x; this.y = y; }
+    add(v) { return new Vector2(this.x + v.x, this.y + v.y); }
+    sub(v) { return new Vector2(this.x - v.x, this.y - v.y); }
+    mult(s) { return new Vector2(this.x * s, this.y * s); }
+    mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
+    normalize() {
+        const m = this.mag();
+        return m > 0 ? new Vector2(this.x / m, this.y / m) : new Vector2(0, 0);
+    }
+    dist(v) { return Math.sqrt((this.x - v.x) ** 2 + (this.y - v.y) ** 2); }
+}
+
+class Car {
+    constructor(x, y, color, name, isPlayer = false) {
+        this.pos = new Vector2(x, y);
+        this.vel = new Vector2(0, 0);
+        this.angle = Math.random() * Math.PI * 2;
+        this.speed = 0;
+        this.maxSpeed = isPlayer ? 8 : 6 + Math.random() * 3;
+        this.accel = 0.3;
+        this.friction = 0.95;
+        this.turnSpeed = 0.08;
+        this.color = color;
+        this.name = name;
+        this.isPlayer = isPlayer;
+        this.fuel = 100;
+        this.health = 100;
+        this.alive = true;
+        this.width = 24;
+        this.height = 14;
+        this.trail = [];
+        this.aiTarget = null;
+        this.aiChangeTimer = 0;
+        this.score = 0;
+    }
+
+    update(keys) {
+        if (!this.alive) return;
+
+        if (this.isPlayer) {
+            // Player controls
+            const sens = sensitivity / 5;
+            if (keys['w'] || keys['arrowup']) {
+                this.speed += this.accel * sens;
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                this.speed -= this.accel * sens;
+            }
+            if (keys['a'] || keys['arrowleft']) {
+                this.angle -= this.turnSpeed * sens * (Math.abs(this.speed) / this.maxSpeed + 0.2);
+            }
+            if (keys['d'] || keys['arrowright']) {
+                this.angle += this.turnSpeed * sens * (Math.abs(this.speed) / this.maxSpeed + 0.2);
+            }
+        } else {
+            // AI behavior
+            this.aiUpdate();
+        }
+
+        // Cap speed
+        this.speed = Math.max(-this.maxSpeed * 0.5, Math.min(this.maxSpeed, this.speed));
+        
+        // Friction
+        this.speed *= this.friction;
+
+        // Fuel consumption
+        if (Math.abs(this.speed) > 0.1) {
+            this.fuel -= 0.03;
+        }
+        if (this.fuel <= 0) {
+            this.speed *= 0.99;
+            if (this.speed < 0.5) this.speed = 0;
+        }
+
+        // Calculate velocity
+        this.vel.x = Math.cos(this.angle) * this.speed;
+        this.vel.y = Math.sin(this.angle) * this.speed;
+
+        // Update position
+        this.pos.x += this.vel.x;
+        this.pos.y += this.vel.y;
+
+        // Boundary check
+        this.pos.x = Math.max(50, Math.min(MAP_WIDTH - 50, this.pos.x));
+        this.pos.y = Math.max(50, Math.min(MAP_HEIGHT - 50, this.pos.y));
+
+        // Trail
+        if (Math.abs(this.speed) > 1) {
+            this.trail.push({ x: this.pos.x, y: this.pos.y, life: 20 });
+        }
+        this.trail = this.trail.filter(t => {
+            t.life--;
+            return t.life > 0;
+        });
+    }
+
+    aiUpdate() {
+        this.aiChangeTimer--;
+        
+        // Find nearest tornado to avoid (storm phase) or chase (tornado phase)
+        let target = null;
+        let minDist = Infinity;
+        
+        for (let t of tornadoes) {
+            const d = this.pos.dist(t.pos);
+            if (d < minDist) {
+                minDist = d;
+                target = t;
+            }
+        }
+
+        if (phase === 'storm') {
+            // AVOID tornadoes
+            if (target && minDist < 300) {
+                const away = this.pos.sub(target.pos).normalize();
+                this.aiTarget = this.pos.add(away.mult(400));
+            }
+        } else {
+            // CHASE the big tornado
+            if (target) {
+                this.aiTarget = target.pos;
+            }
+        }
+
+        // Also seek gas stations if low fuel
+        if (this.fuel < 30) {
+            let nearestGas = null;
+            let minGasDist = Infinity;
+            for (let g of gasStations) {
+                const d = this.pos.dist(new Vector2(g.x, g.y));
+                if (d < minGasDist) {
+                    minGasDist = d;
+                    nearestGas = g;
+                }
+            }
+            if (nearestGas) {
+                this.aiTarget = new Vector2(nearestGas.x, nearestGas.y);
+            }
+        }
+
+        // Random wandering
+        if (!this.aiTarget || this.aiChangeTimer <= 0) {
+            this.aiTarget = new Vector2(
+                200 + Math.random() * (MAP_WIDTH - 400),
+                200 + Math.random() * (MAP_HEIGHT - 400)
+            );
+            this.aiChangeTimer = 100 + Math.random() * 200;
+        }
+
+        // Steer toward target
+        if (this.aiTarget) {
+            const dir = this.aiTarget.sub(this.pos);
+            const targetAngle = Math.atan2(dir.y, dir.x);
+            let diff = targetAngle - this.angle;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            
+            this.angle += Math.sign(diff) * Math.min(Math.abs(diff), this.turnSpeed);
+            this.speed += this.accel;
+        }
+    }
+
+    draw(ctx, camX, camY) {
+        if (!this.alive) return;
+
+        const x = this.pos.x - camX;
+        const y = this.pos.y - camY;
+
+        // Trail
+        ctx.strokeStyle = this.color + '40';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i < this.trail.length - 1; i++) {
+            ctx.moveTo(this.trail[i].x - camX, this.trail[i].y - camY);
+            ctx.lineTo(this.trail[i + 1].x - camX, this.trail[i + 1].y - camY);
+        }
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(this.angle);
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(-this.width/2 + 3, -this.height/2 + 3, this.width, this.height);
+
+        // Car body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
+
+        // Car details
+        ctx.fillStyle = '#333';
+        ctx.fillRect(-this.width/2 + 2, -this.height/2 + 2, this.width - 4, this.height - 4);
+        
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-this.width/2 + 4, -this.height/2 + 4, this.width - 8, this.height - 8);
+
+        // Windshield
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(2, -this.height/2 + 3, 8, this.height - 6);
+
+        // Headlights
+        ctx.fillStyle = '#ffffaa';
+        ctx.fillRect(this.width/2 - 2, -this.height/2 + 1, 3, 3);
+        ctx.fillRect(this.width/2 - 2, this.height/2 - 4, 3, 3);
+
+        // Taillights
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(-this.width/2, -this.height/2 + 1, 2, 3);
+        ctx.fillRect(-this.width/2, this.height/2 - 4, 2, 3);
+
+        ctx.restore();
+
+        // Name tag
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 11px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.name, x, y - 20);
+
+        // Health bar
+        const barWidth = 30;
+        const barHeight = 4;
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x - barWidth/2, y - 15, barWidth, barHeight);
+        ctx.fillStyle = this.health > 50 ? '#0f0' : this.health > 25 ? '#ff0' : '#f00';
+        ctx.fillRect(x - barWidth/2, y - 15, barWidth * (this.health / 100), barHeight);
+
+        // Fuel indicator (only for player)
+        if (this.isPlayer) {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(x - barWidth/2, y - 10, barWidth, barHeight);
+            ctx.fillStyle = this.fuel > 30 ? '#00aaff' : '#ff6600';
+            ctx.fillRect(x - barWidth/2, y - 10, barWidth * (this.fuel / 100), barHeight);
+        }
+    }
+}
+
+class Tornado {
+    constructor(x, y, size = 'medium') {
+        this.pos = new Vector2(x, y);
+        this.baseX = x;
+        this.baseY = y;
+        this.size = size;
+        this.radius = size === 'small' ? 40 : size === 'medium' ? 80 : 150;
+        this.angle = 0;
+        this.speed = size === 'small' ? 2 : size === 'medium' ? 1.5 : 1;
+        this.wobble = 0;
+        this.particles = [];
+        this.life = 0;
+        this.isFinal = false;
+    }
+
+    update() {
+        this.life++;
+        this.angle += 0.05;
+        this.wobble += 0.02;
+
+        // Move in figure-8 or random pattern
+        if (this.size === 'large') {
+            // Final tornado moves slowly toward center
+            const center = new Vector2(MAP_WIDTH/2, MAP_HEIGHT/2);
+            const toCenter = center.sub(this.pos).normalize().mult(0.5);
+            this.pos = this.pos.add(toCenter);
+        } else {
+            this.pos.x = this.baseX + Math.sin(this.wobble) * 200;
+            this.pos.y = this.baseY + Math.cos(this.wobble * 0.7) * 150;
+        }
+
+        // Spawn particles
+        for (let i = 0; i < 3; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * this.radius;
+            this.particles.push({
+                x: this.pos.x + Math.cos(angle) * dist,
+                y: this.pos.y + Math.sin(angle) * dist,
+                vx: Math.cos(angle + Math.PI/2) * (2 + Math.random() * 3),
+                vy: Math.sin(angle + Math.PI/2) * (2 + Math.random() * 3),
+                life: 30 + Math.random() * 30,
+                size: 3 + Math.random() * 8,
+                color: `hsl(${200 + Math.random() * 40}, 60%, ${30 + Math.random() * 30}%)`
+            });
+        }
+
+        // Update particles
+        this.particles = this.particles.filter(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vx *= 0.98;
+            p.vy *= 0.98;
+            // Spiral inward
+            const toCenter = this.pos.sub(new Vector2(p.x, p.y)).normalize().mult(0.3);
+            p.vx += toCenter.x;
+            p.vy += toCenter.y;
+            p.life--;
+            return p.life > 0;
+        });
+    }
+
+    draw(ctx, camX, camY) {
+        // Draw particles
+        for (let p of this.particles) {
+            const alpha = p.life / 60;
+            ctx.fillStyle = p.color.replace(')', `, ${alpha})`).replace('hsl', 'hsla');
+            ctx.beginPath();
+            ctx.arc(p.x - camX, p.y - camY, p.size * (p.life / 60), 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw funnel
+        const x = this.pos.x - camX;
+        const y = this.pos.y - camY;
+
+        // Outer glow
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, this.radius * 1.5);
+        gradient.addColorStop(0, 'rgba(100, 100, 120, 0.3)');
+        gradient.addColorStop(0.5, 'rgba(80, 80, 100, 0.2)');
+        gradient.addColorStop(1, 'rgba(60, 60, 80, 0)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, this.radius * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Main funnel
+        for (let i = 0; i < 5; i++) {
+            const r = this.radius * (1 - i * 0.15);
+            const offset = i * 8;
+            ctx.strokeStyle = `rgba(${100 + i * 20}, ${100 + i * 20}, ${120 + i * 10}, ${0.6 - i * 0.1})`;
+            ctx.lineWidth = 3 - i * 0.4;
+            ctx.beginPath();
+            for (let a = 0; a < Math.PI * 2; a += 0.1) {
+                const spiral = a + this.angle + i * 0.5;
+                const px = x + Math.cos(spiral) * r;
+                const py = y + Math.sin(spiral) * r + offset;
+                if (a === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        // Core
+        ctx.fillStyle = 'rgba(40, 40, 60, 0.8)';
+        ctx.beginPath();
+        ctx.arc(x, y, this.radius * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Lightning
+        if (Math.random() < 0.05) {
+            ctx.strokeStyle = '#aaaaff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y - this.radius);
+            for (let i = 0; i < 5; i++) {
+                ctx.lineTo(
+                    x + (Math.random() - 0.5) * 40,
+                    y - this.radius + i * (this.radius * 2 / 5)
+                );
+            }
+            ctx.stroke();
+        }
+
+        // Label for final tornado
+        if (this.isFinal) {
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('★ ФІНАЛЬНЕ ТОРНАДО ★', x, y - this.radius - 20);
+        }
+    }
+}
+
+class Interceptor {
+    constructor(x, y) {
+        this.pos = new Vector2(x, y);
+        this.deployed = false;
+        this.target = null;
+        this.speed = 4;
+        this.angle = 0;
+        this.life = 0;
+    }
+
+    update() {
+        this.life++;
+        if (!this.deployed) return;
+
+        // Find nearest tornado
+        let nearest = null;
+        let minDist = Infinity;
+        for (let t of tornadoes) {
+            const d = this.pos.dist(t.pos);
+            if (d < minDist) {
+                minDist = d;
+                nearest = t;
+            }
+        }
+
+        if (nearest) {
+            const dir = nearest.pos.sub(this.pos).normalize();
+            this.angle = Math.atan2(dir.y, dir.x);
+            this.pos = this.pos.add(dir.mult(this.speed));
+        }
+
+        // Check collision with tornado
+        if (nearest && this.pos.dist(nearest.pos) < nearest.radius) {
+            // Damage tornado
+            nearest.radius = Math.max(20, nearest.radius - 15);
+            this.deployed = false;
+            addMessage('💥 Перехоплювач влучив у торнадо!', '#ff6666');
+            screenShake = 10;
+        }
+    }
+
+    draw(ctx, camX, camY) {
+        if (!this.deployed) return;
+        const x = this.pos.x - camX;
+        const y = this.pos.y - camY;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(this.angle);
+
+        // Rocket body
+        ctx.fillStyle = '#cc3333';
+        ctx.fillRect(-8, -3, 16, 6);
+        
+        // Nose
+        ctx.fillStyle = '#ff6666';
+        ctx.beginPath();
+        ctx.moveTo(8, -3);
+        ctx.lineTo(12, 0);
+        ctx.lineTo(8, 3);
+        ctx.fill();
+
+        // Fins
+        ctx.fillStyle = '#aa2222';
+        ctx.fillRect(-6, -5, 4, 2);
+        ctx.fillRect(-6, 3, 4, 2);
+
+        // Flame
+        ctx.fillStyle = `rgba(255, ${100 + Math.random() * 155}, 0, 0.8)`;
+        ctx.beginPath();
+        ctx.moveTo(-8, -2);
+        ctx.lineTo(-12 - Math.random() * 8, 0);
+        ctx.lineTo(-8, 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+}
+
+// ==================== GAME OBJECTS ====================
+
+let player;
+let cars = [];
+let tornadoes = [];
+let roads = [];
+let gasStations = [];
+let trees = [];
+let interceptors = [];
+let buildings = [];
+
+const carColors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e91e63', '#ff5722'];
+
+// ==================== GENERATION ====================
+
+function generateMap() {
+    roads = [];
+    gasStations = [];
+    trees = [];
+    buildings = [];
+    interceptors = [];
+
+    // Generate road network (grid + some random)
+    const gridSize = 400;
+    for (let x = 0; x <= MAP_WIDTH; x += gridSize) {
+        roads.push({ x1: x, y1: 0, x2: x, y2: MAP_WIDTH, width: 30 });
+    }
+    for (let y = 0; y <= MAP_HEIGHT; y += gridSize) {
+        roads.push({ x1: 0, y1: y, x2: MAP_WIDTH, y2: y, width: 30 });
+    }
+
+    // Diagonal roads
+    roads.push({ x1: 0, y1: 0, x2: MAP_WIDTH, y2: MAP_HEIGHT, width: 20 });
+    roads.push({ x1: MAP_WIDTH, y1: 0, x2: 0, y2: MAP_HEIGHT, width: 20 });
+
+    // Random curved roads
+    for (let i = 0; i < 5; i++) {
+        const rx = 200 + Math.random() * (MAP_WIDTH - 400);
+        const ry = 200 + Math.random() * (MAP_HEIGHT - 400);
+        roads.push({
+            x1: rx, y1: ry,
+            x2: rx + (Math.random() - 0.5) * 600,
+            y2: ry + (Math.random() - 0.5) * 600,
+            width: 25, curved: true
+        });
+    }
+
+    // Gas stations at intersections
+    const intersections = [];
+    for (let i = 0; i < roads.length; i++) {
+        for (let j = i + 1; j < roads.length; j++) {
+            const r1 = roads[i];
+            const r2 = roads[j];
+            // Simple intersection check
+            if (Math.abs(r1.x1 - r1.x2) < 10 && Math.abs(r2.y1 - r2.y2) < 10) {
+                intersections.push({ x: r1.x1, y: r2.y1 });
+            }
+            if (Math.abs(r1.y1 - r1.y2) < 10 && Math.abs(r2.x1 - r2.x2) < 10) {
+                intersections.push({ x: r2.x1, y: r1.y1 });
+            }
+        }
+    }
+
+    // Add gas stations
+    for (let i = 0; i < Math.min(intersections.length, 12); i++) {
+        const idx = Math.floor(Math.random() * intersections.length);
+        const inter = intersections[idx];
+        gasStations.push({
+            x: inter.x + (Math.random() - 0.5) * 60,
+            y: inter.y + (Math.random() - 0.5) * 60,
+            size: 40 + Math.random() * 30
+        });
+    }
+
+    // Extra large gas stations
+    for (let i = 0; i < 3; i++) {
+        gasStations.push({
+            x: 300 + Math.random() * (MAP_WIDTH - 600),
+            y: 300 + Math.random() * (MAP_HEIGHT - 600),
+            size: 80,
+            large: true
+        });
+    }
+
+    // Trees
+    for (let i = 0; i < 300; i++) {
+        trees.push({
+            x: Math.random() * MAP_WIDTH,
+            y: Math.random() * MAP_HEIGHT,
+            size: 15 + Math.random() * 25,
+            type: Math.random() > 0.5 ? 'pine' : 'oak'
+        });
+    }
+
+    // Buildings
+    for (let i = 0; i < 50; i++) {
+        buildings.push({
+            x: 100 + Math.random() * (MAP_WIDTH - 200),
+            y: 100 + Math.random() * (MAP_HEIGHT - 200),
+            w: 40 + Math.random() * 80,
+            h: 40 + Math.random() * 80,
+            color: `hsl(${30 + Math.random() * 30}, 20%, ${40 + Math.random() * 20}%)`
+        });
+    }
+}
+
+function spawnTornadoes() {
+    tornadoes = [];
+    if (phase === 'storm') {
+        // Multiple small/medium tornadoes
+        for (let i = 0; i < 5; i++) {
+            tornadoes.push(new Tornado(
+                300 + Math.random() * (MAP_WIDTH - 600),
+                300 + Math.random() * (MAP_HEIGHT - 600),
+                Math.random() > 0.5 ? 'small' : 'medium'
+            ));
+        }
+    } else {
+        // One BIG tornado in the center
+        const bigTornado = new Tornado(MAP_WIDTH / 2, MAP_HEIGHT / 2, 'large');
+        bigTornado.isFinal = true;
+        bigTornado.radius = 200;
+        tornadoes.push(bigTornado);
+    }
+}
+
+function spawnCars() {
+    cars = [];
+    const botNames = ['Вітер', 'Гроза', 'Шторм', 'Халепа', 'Вихор', 'Ураган', 'Блискавка'];
+    
+    player = new Car(MAP_WIDTH/2, MAP_HEIGHT/2, '#ff3333', playerName, true);
+    cars.push(player);
+
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI * 2 / 6) * i;
+        const dist = 300;
+        cars.push(new Car(
+            MAP_WIDTH/2 + Math.cos(angle) * dist,
+            MAP_HEIGHT/2 + Math.sin(angle) * dist,
+            carColors[i + 1],
+            botNames[i],
+            false
+        ));
+    }
+}
+
+// ==================== INPUT ====================
+
+const keys = {};
+window.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key === ' ') {
+        e.preventDefault();
+        deployInterceptor();
+    }
+});
+window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+function deployInterceptor() {
+    if (!player.alive) return;
+    const interceptor = new Interceptor(player.pos.x, player.pos.y);
+    interceptor.deployed = true;
+    interceptors.push(interceptor);
+    addMessage('🚀 Перехоплювач запущено!', '#66ccff');
+}
+
+// ==================== COLLISION & LOGIC ====================
+
+function checkCollisions() {
+    // Car vs Tornado
+    for (let car of cars) {
+        if (!car.alive) continue;
+        for (let t of tornadoes) {
+            const dist = car.pos.dist(t.pos);
+            if (dist < t.radius * 0.7) {
+                // Being sucked in!
+                const pull = t.pos.sub(car.pos).normalize().mult(3);
+                car.pos = car.pos.add(pull);
+                car.health -= 2;
+                
+                if (car.health <= 0) {
+                    car.alive = false;
+                    if (car.isPlayer) {
+                        playerDied('Торнадо затягнуло тебе у вихор!');
+                    } else {
+                        addMessage(`💀 ${car.name} знищено торнадо!`, '#ff6666');
+                    }
+                }
+            } else if (dist < t.radius) {
+                car.health -= 0.5;
+                // Push away slightly
+                const push = car.pos.sub(t.pos).normalize().mult(1);
+                car.pos = car.pos.add(push);
+            }
+        }
+    }
+
+    // Car vs Car
+    for (let i = 0; i < cars.length; i++) {
+        for (let j = i + 1; j < cars.length; j++) {
+            const c1 = cars[i];
+            const c2 = cars[j];
+            if (!c1.alive || !c2.alive) continue;
+            
+            const dist = c1.pos.dist(c2.pos);
+            if (dist < 30) {
+                // Bounce
+                const normal = c1.pos.sub(c2.pos).normalize();
+                c1.pos = c1.pos.add(normal.mult(2));
+                c2.pos = c2.pos.sub(normal.mult(2));
+                c1.health -= 5;
+                c2.health -= 5;
+            }
+        }
+    }
+
+    // Car vs Gas Station
+    for (let car of cars) {
+        if (!car.alive) continue;
+        for (let g of gasStations) {
+            const dist = car.pos.dist(new Vector2(g.x, g.y));
+            if (dist < g.size / 2 + 20) {
+                car.fuel = Math.min(100, car.fuel + 1);
+                car.health = Math.min(100, car.health + 0.5);
+            }
+        }
+    }
+
+    // Interceptor vs Tornado (handled in Interceptor.update)
+
+    // Check win condition (tornado phase)
+    if (phase === 'tornado') {
+        for (let car of cars) {
+            if (!car.alive) continue;
+            for (let t of tornadoes) {
+                if (t.isFinal && car.pos.dist(t.pos) < t.radius * 0.5) {
+                    // Touch the tornado!
+                    if (car.isPlayer) {
+                        playerWon();
+                    } else {
+                        addMessage(`🏆 ${car.name} переміг, доторкнувшись до торнадо!`, '#ffd700');
+                    }
+                    return;
+                }
+            }
+        }
+    }
+}
+
+function playerDied(reason) {
+    gameRunning = false;
+    document.getElementById('deathReason').textContent = reason;
+    document.getElementById('finalScore').textContent = `Ти протримався ${formatTime(gameTime)}`;
+    document.getElementById('deathScreen').style.display = 'flex';
+    document.getElementById('gameUI').style.display = 'none';
+    
+    gamesPlayed++;
+    localStorage.setItem('tornado_games', gamesPlayed);
+    document.getElementById('gamesPlayed').textContent = gamesPlayed;
+}
+
+function playerWon() {
+    gameRunning = false;
+    wins++;
+    localStorage.setItem('tornado_wins', wins);
+    document.getElementById('wins').textContent = wins;
+    
+    if (gameTime > bestScore) {
+        bestScore = gameTime;
+        localStorage.setItem('tornado_best', bestScore);
+        document.getElementById('bestScore').textContent = bestScore;
+    }
+    
+    document.getElementById('deathReason').textContent = '🎉 ТИ ПЕРЕМІГ! 🎉';
+    document.getElementById('deathReason').style.color = '#ffd700';
+    document.getElementById('finalScore').textContent = `Час: ${formatTime(gameTime)}`;
+    document.getElementById('deathScreen').style.display = 'flex';
+    document.getElementById('gameUI').style.display = 'none';
+}
+
+// ==================== DRAWING ====================
+
+function drawGround(ctx, camX, camY) {
+    // Grass background
+    ctx.fillStyle = '#3a6b1f';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Grid pattern
+    ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+    ctx.lineWidth = 1;
+    const gridSize = 100;
+    const offsetX = -camX % gridSize;
+    const offsetY = -camY % gridSize;
+    
+    for (let x = offsetX; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = offsetY; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    // Draw roads
+    for (let road of roads) {
+        const x1 = road.x1 - camX;
+        const y1 = road.y1 - camY;
+        const x2 = road.x2 - camX;
+        const y2 = road.y2 - camY;
+
+        // Road shadow
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = road.width + 4;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        // Road surface
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = road.width;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        // Road lines
+        ctx.strokeStyle = '#777';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([15, 15]);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // Draw buildings
+    for (let b of buildings) {
+        const bx = b.x - camX;
+        const by = b.y - camY;
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(bx + 5, by + 5, b.w, b.h);
+        
+        // Building
+        ctx.fillStyle = b.color;
+        ctx.fillRect(bx, by, b.w, b.h);
+        
+        // Roof
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.fillRect(bx, by, b.w, 5);
+        
+        // Windows
+        ctx.fillStyle = '#87CEEB';
+        for (let wx = 5; wx < b.w - 10; wx += 15) {
+            for (let wy = 10; wy < b.h - 10; wy += 20) {
+                if (Math.random() > 0.3) {
+                    ctx.fillRect(bx + wx, by + wy, 8, 12);
+                }
+            }
+        }
+    }
+
+    // Draw gas stations
+    for (let g of gasStations) {
+        const gx = g.x - camX;
+        const gy = g.y - camY;
+        const size = g.size;
+
+        // Station area
+        ctx.fillStyle = g.large ? 'rgba(200,200,200,0.3)' : 'rgba(180,180,180,0.2)';
+        ctx.beginPath();
+        ctx.arc(gx, gy, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Canopy
+        ctx.fillStyle = g.large ? '#cc3333' : '#dd4444';
+        ctx.fillRect(gx - size/3, gy - size/4, size/1.5, size/2);
+        
+        // Pillars
+        ctx.fillStyle = '#888';
+        ctx.fillRect(gx - size/3 + 5, gy - size/4, 4, size/2);
+        ctx.fillRect(gx + size/3 - 9, gy - size/4, 4, size/2);
+
+        // Pumps
+        ctx.fillStyle = '#333';
+        for (let i = -1; i <= 1; i++) {
+            ctx.fillRect(gx + i * 12 - 3, gy + 5, 6, 10);
+        }
+
+        // Sign
+        ctx.fillStyle = '#ffcc00';
+        ctx.font = g.large ? 'bold 14px Arial' : 'bold 10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('⛽', gx, gy - size/4 - 5);
+
+        if (g.large) {
+            ctx.fillStyle = '#ffcc00';
+            ctx.font = 'bold 10px Arial';
+            ctx.fillText('АЗС', gx, gy + size/2 + 12);
+        }
+
+        // Glow effect for healing
+        ctx.strokeStyle = 'rgba(0,255,0,0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(gx, gy, size/2 + Math.sin(gameTime * 0.1) * 5, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    // Draw trees
+    for (let tree of trees) {
+        const tx = tree.x - camX;
+        const ty = tree.y - camY;
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath();
+        ctx.arc(tx + 3, ty + 3, tree.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (tree.type === 'pine') {
+            // Pine tree
+            ctx.fillStyle = '#1a5c1a';
+            ctx.beginPath();
+            ctx.moveTo(tx, ty - tree.size);
+            ctx.lineTo(tx - tree.size * 0.4, ty + tree.size * 0.3);
+            ctx.lineTo(tx + tree.size * 0.4, ty + tree.size * 0.3);
+            ctx.fill();
+            
+            ctx.fillStyle = '#0d4d0d';
+            ctx.beginPath();
+            ctx.moveTo(tx, ty - tree.size * 0.7);
+            ctx.lineTo(tx - tree.size * 0.3, ty + tree.size * 0.1);
+            ctx.lineTo(tx + tree.size * 0.3, ty + tree.size * 0.1);
+            ctx.fill();
+        } else {
+            // Oak tree
+            ctx.fillStyle = '#2d7a2d';
+            ctx.beginPath();
+            ctx.arc(tx, ty - tree.size * 0.3, tree.size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#1e5c1e';
+            ctx.beginPath();
+            ctx.arc(tx - tree.size * 0.2, ty - tree.size * 0.5, tree.size * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#246b24';
+            ctx.beginPath();
+            ctx.arc(tx + tree.size * 0.2, ty - tree.size * 0.4, tree.size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Trunk
+        ctx.fillStyle = '#5c3a1e';
+        ctx.fillRect(tx - 2, ty, 4, tree.size * 0.4);
+    }
+}
+
+function drawRain(ctx) {
+    ctx.strokeStyle = 'rgba(150, 150, 200, 0.4)';
+    ctx.lineWidth = 1;
+    
+    for (let i = 0; i < rainDrops.length; i++) {
+        const drop = rainDrops[i];
+        drop.y += drop.speed;
+        drop.x += drop.wind;
+        
+        if (drop.y > canvas.height) {
+            drop.y = -10;
+            drop.x = Math.random() * canvas.width;
+        }
+        
+        ctx.beginPath();
+        ctx.moveTo(drop.x, drop.y);
+        ctx.lineTo(drop.x + drop.wind, drop.y + drop.length);
+        ctx.stroke();
+    }
+}
+
+function drawMinimap() {
+    const mmw = minimapCanvas.width;
+    const mmh = minimapCanvas.height;
+    const scaleX = mmw / MAP_WIDTH;
+    const scaleY = mmh / MAP_HEIGHT;
+
+    minimapCtx.fillStyle = '#1a3a0a';
+    minimapCtx.fillRect(0, 0, mmw, mmh);
+
+    // Roads
+    minimapCtx.strokeStyle = '#555';
+    minimapCtx.lineWidth = 1;
+    for (let road of roads) {
+        minimapCtx.beginPath();
+        minimapCtx.moveTo(road.x1 * scaleX, road.y1 * scaleY);
+        minimapCtx.lineTo(road.x2 * scaleX, road.y2 * scaleY);
+        minimapCtx.stroke();
+    }
+
+    // Gas stations
+    minimapCtx.fillStyle = '#ffcc00';
+    for (let g of gasStations) {
+        minimapCtx.fillRect(g.x * scaleX - 2, g.y * scaleY - 2, 4, 4);
+    }
+
+    // Tornadoes
+    for (let t of tornadoes) {
+        minimapCtx.fillStyle = t.isFinal ? '#ff0000' : '#6666ff';
+        minimapCtx.beginPath();
+        minimapCtx.arc(t.pos.x * scaleX, t.pos.y * scaleY, t.isFinal ? 6 : 3, 0, Math.PI * 2);
+        minimapCtx.fill();
+    }
+
+    // Cars
+    for (let car of cars) {
+        if (!car.alive) continue;
+        minimapCtx.fillStyle = car.isPlayer ? '#ff0000' : car.color;
+        minimapCtx.fillRect(car.pos.x * scaleX - 2, car.pos.y * scaleY - 2, 4, 4);
+    }
+
+    // Viewport rectangle
+    minimapCtx.strokeStyle = 'rgba(255,255,255,0.5)';
+    minimapCtx.lineWidth = 1;
+    minimapCtx.strokeRect(
+        camera.x * scaleX,
+        camera.y * scaleY,
+        canvas.width * scaleX,
+        canvas.height * scaleY
+    );
+}
+
+function drawRadar() {
+    const rcw = radarCanvas.width;
+    const rch = radarCanvas.height;
+    const cx = rcw / 2;
+    const cy = rch / 2;
+
+    // Background
+    radarCtx.fillStyle = 'rgba(0, 20, 0, 0.9)';
+    radarCtx.fillRect(0, 0, rcw, rch);
+
+    // Grid circles
+    radarCtx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+    radarCtx.lineWidth = 1;
+    for (let r = 20; r < 80; r += 20) {
+        radarCtx.beginPath();
+        radarCtx.arc(cx, cy, r, 0, Math.PI * 2);
+        radarCtx.stroke();
+    }
+
+    // Crosshairs
+    radarCtx.beginPath();
+    radarCtx.moveTo(cx, 0);
+    radarCtx.lineTo(cx, rch);
+    radarCtx.moveTo(0, cy);
+    radarCtx.lineTo(rcw, cy);
+    radarCtx.stroke();
+
+    // Wind direction from tornadoes
+    for (let t of tornadoes) {
+        const dx = t.pos.x - player.pos.x;
+        const dy = t.pos.y - player.pos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const maxDist = 1000;
+        
+        if (dist < maxDist) {
+            const angle = Math.atan2(dy, dx);
+            const r = (dist / maxDist) * 70;
+            const px = cx + Math.cos(angle) * r;
+            const py = cy + Math.sin(angle) * r;
+
+            // Wind arrow
+            radarCtx.strokeStyle = t.isFinal ? '#ff0000' : '#00ff00';
+            radarCtx.lineWidth = 2;
+            radarCtx.beginPath();
+            radarCtx.moveTo(cx, cy);
+            radarCtx.lineTo(px, py);
+            radarCtx.stroke();
+
+            // Dot
+            radarCtx.fillStyle = t.isFinal ? '#ff0000' : '#00ff00';
+            radarCtx.beginPath();
+            radarCtx.arc(px, py, t.isFinal ? 5 : 3, 0, Math.PI * 2);
+            radarCtx.fill();
+
+            // Distance text
+            radarCtx.fillStyle = '#00ff00';
+            radarCtx.font = '10px Arial';
+            radarCtx.fillText(Math.floor(dist) + 'м', px + 5, py);
+        }
+    }
+
+    // Player center
+    radarCtx.fillStyle = '#ffff00';
+    radarCtx.beginPath();
+    radarCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+    radarCtx.fill();
+
+    // Sweep effect
+    const sweepAngle = (gameTime * 0.05) % (Math.PI * 2);
+    radarCtx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+    radarCtx.lineWidth = 2;
+    radarCtx.beginPath();
+    radarCtx.moveTo(cx, cy);
+    radarCtx.lineTo(cx + Math.cos(sweepAngle) * 75, cy + Math.sin(sweepAngle) * 75);
+    radarCtx.stroke();
+}
+
+function updateLeaderboard() {
+    const sorted = [...cars].sort((a, b) => {
+        if (a.alive && !b.alive) return -1;
+        if (!a.alive && b.alive) return 1;
+        return b.health - a.health;
+    });
+
+    let html = '';
+    for (let i = 0; i < sorted.length; i++) {
+        const car = sorted[i];
+        const status = car.alive ? `❤️${Math.floor(car.health)}` : '💀';
+        const me = car.isPlayer ? 'me' : '';
+        html += `<div class="leader-item ${me}">${i+1}. ${car.name} <span>${status}</span></div>`;
+    }
+    document.getElementById('leaderList').innerHTML = html;
+}
+
+function addMessage(text, color = 'white') {
+    const msg = document.createElement('div');
+    msg.className = 'msg';
+    msg.style.color = color;
+    msg.textContent = text;
+    document.getElementById('messages').appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+}
+
+function showPhaseMessage(text) {
+    const el = document.getElementById('phaseIndicator');
+    el.textContent = text;
+    el.style.opacity = '1';
+    setTimeout(() => el.style.opacity = '0', 3000);
+}
+
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// ==================== MAIN LOOP ====================
+
+function gameLoop() {
+    if (!gameRunning) return;
+
+    // Update time
+    gameTime += 1/60;
+    phaseTime += 1/60;
+
+    // Phase management
+    if (phase === 'storm' && phaseTime > 60) {
+        phase = 'tornado';
+        phaseTime = 0;
+        showPhaseMessage('🌪️ ФІНАЛЬНЕ ТОРНАДО З\'ЯВИЛОСЯ! ДОТОРКНИСЬ ДО НЬОГО ПЕРШИМ!');
+        spawnTornadoes();
+        addMessage('⚠️ Всі торнадо злилися в одне величезне!', '#ff6666');
+    }
+
+    // Update camera (follow player)
+    if (player.alive) {
+        camera.x = player.pos.x - canvas.width / 2;
+        camera.y = player.pos.y - canvas.height / 2;
+    }
+    camera.x = Math.max(0, Math.min(MAP_WIDTH - canvas.width, camera.x));
+    camera.y = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, camera.y));
+
+    // Screen shake
+    let shakeX = 0, shakeY = 0;
+    if (screenShake > 0) {
+        shakeX = (Math.random() - 0.5) * screenShake;
+        shakeY = (Math.random() - 0.5) * screenShake;
+        screenShake *= 0.9;
+        if (screenShake < 0.5) screenShake = 0;
+    }
+
+    // Clear canvas
+    ctx.fillStyle = '#2d5016';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    // Draw world
+    drawGround(ctx, camera.x, camera.y);
+
+    // Update and draw tornadoes
+    for (let t of tornadoes) {
+        t.update();
+        t.draw(ctx, camera.x, camera.y);
+    }
+
+    // Update and draw interceptors
+    for (let i of interceptors) {
+        i.update();
+        i.draw(ctx, camera.x, camera.y);
+    }
+
+    // Update and draw cars
+    for (let car of cars) {
+        car.update(keys);
+        car.draw(ctx, camera.x, camera.y);
+    }
+
+    // Rain in storm phase
+    if (phase === 'storm') {
+        drawRain(ctx);
+    }
+
+    ctx.restore();
+
+    // Update UI
+    document.getElementById('fuelDisplay').textContent = Math.floor(player.fuel) + '%';
+    document.getElementById('healthDisplay').textContent = Math.floor(player.health) + '%';
+    document.getElementById('speedDisplay').textContent = Math.floor(Math.abs(player.speed) * 10);
+    document.getElementById('phaseDisplay').textContent = phase === 'storm' ? '⛈️ Шторм' : '🌪️ Торнадо';
+    document.getElementById('timeDisplay').textContent = formatTime(gameTime);
+
+    // Update minimap and radar
+    drawMinimap();
+    drawRadar();
+    updateLeaderboard();
+
+    // Check collisions
+    checkCollisions();
+
+    // Check if all bots dead and player alive = win
+    const aliveBots = cars.filter(c => !c.isPlayer && c.alive).length;
+    if (phase === 'tornado' && aliveBots === 0 && player.alive) {
+        playerWon();
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+// ==================== GAME CONTROL ====================
+
+function startGame() {
+    document.getElementById('menu').style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById('menu').style.display = 'none';
+    }, 500);
+    
+    document.getElementById('deathScreen').style.display = 'none';
+    document.getElementById('gameUI').style.display = 'block';
+    
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Reset game state
+    gameRunning = true;
+    gameTime = 0;
+    phaseTime = 0;
+    phase = 'storm';
+    screenShake = 0;
+
+    // Generate rain
+    rainDrops = [];
+    for (let i = 0; i < 100; i++) {
+        rainDrops.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            speed: 5 + Math.random() * 10,
+            length: 10 + Math.random() * 15,
+            wind: -2 + Math.random() * 4
+        });
+    }
+
+    generateMap();
+    spawnCars();
+    spawnTornadoes();
+
+    showPhaseMessage('⛈️ ФАЗА ШТОРМУ! Уникай торнадо та збирай ресурси!');
+    addMessage('Гра почалася! Уникай торнадо!', '#66ff66');
+
+    gameLoop();
+}
+
+function backToMenu() {
+    gameRunning = false;
+    document.getElementById('deathScreen').style.display = 'none';
+    document.getElementById('gameUI').style.display = 'none';
+    canvas.style.display = 'none';
+    
+    const menu = document.getElementById('menu');
+    menu.style.display = 'flex';
+    setTimeout(() => menu.style.opacity = '1', 10);
+}
+
+function showSettings() {
+    document.getElementById('settings').style.display = 'flex';
+    document.getElementById('playerName').value = playerName;
+}
+
+function hideSettings() {
+    playerName = document.getElementById('playerName').value || 'Гравець';
+    localStorage.setItem('tornado_name', playerName);
+    sensitivity = parseInt(document.getElementById('sensitivity').value);
+    volume = parseInt(document.getElementById('volume').value);
+    document.getElementById('settings').style.display = 'none';
+}
+
+function showHowTo() {
+    document.getElementById('howTo').style.display = 'flex';
+}
+
+function hideHowTo() {
+    document.getElementById('howTo').style.display = 'none';
+}
+
+// Window resize
+window.addEventListener('resize', () => {
+    if (gameRunning) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+});
+
+// Load saved settings
+document.getElementById('playerName').value = playerName;
+</script>
+
+</body>
+</html>
